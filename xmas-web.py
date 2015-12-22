@@ -143,6 +143,7 @@ class BitmapOut:
 	RADIUS = 5
 
 	def __init__(self, filename_root, single=True):
+		print("Creating bitmap output, filename_root={0}".format(filename_root))
 		self.idx = 0
 		self.filename_root = filename_root
 		self.single = single
@@ -166,6 +167,7 @@ class BitmapOut:
 
 class PixelsOut:
 	def __init__(self, gpio_pin):
+		print("Creating pixel output, GPIO={0}".format(gpio_pin))
 		self.gpio_pin = gpio_pin
 
 	def render(self, pixels):
@@ -226,7 +228,7 @@ def rainbow(steps=100):
 	"""
 	for i in range(0, steps):
 		for (idx, li) in enumerate(COLS):
-			r,g,b = generate_colour(idx, len(COLS), i/steps)
+			r,g,b = generate_colour(idx, len(COLS), 1-i/steps)
 			for pixel in li:
 				pixel.set(r, g, b)
 		yield TIMEOUT
@@ -321,6 +323,7 @@ def web_server(server_class=http.server.HTTPServer, handler_class=MyRequestHandl
 # Alternative sequences - around the box on the outside? Another box in the middle?
 
 def main():
+	print("{0} is running.".format(sys.argv[0]))
 	bo = BitmapOut("test", single=True)
 
 	t = threading.Thread(target=web_server)
