@@ -1,0 +1,38 @@
+<doctype html>
+<html>
+<head><title>Xmas Web</title></head>
+<body>
+<h1>Xmas Web!</h1>
+<p>This is the control interface for the Xmas display. Choose your mode:</p>
+<ul>
+<li><a href="#" onclick="select_mode('larsen')">Larsen Scanner</a></li>
+<li><a href="#" onclick="select_mode('rainbow')">Rainbow</a></li>
+<li><a href="#" onclick="select_mode('snowflakes')">Snow</a></li>
+</ul>
+<p id="pending">Please wait...</p>
+<p id="success">Mode set OK</p>
+<p id="failed"></p>
+</body>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script language="javascript">
+function select_mode(mode)
+{
+	$('#success').hide();
+	$('#failed').hide();
+	$('#pending').show()
+	var data = { "mode": mode };
+	$.post("/mode", data).done(function() {
+		$('#success').html("Mode " + mode + " set OK");
+		$('#success').show();
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+		$('#failed').html(errorThrown);
+		$('#failed').show();
+	}).always(function() {
+		$('#pending').hide()
+	});
+}
+$('#pending').hide();
+$('#success').hide();
+$('#failed').hide();
+</script>
+</html>
