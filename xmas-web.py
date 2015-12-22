@@ -193,7 +193,7 @@ def generate_colour(num, count, rotate):
 def snowflakes(steps=100):
 	"""All red, with falling white pixels representing snow.
 
-	@todo make snow 2x2, as 1x2 doesn't show up well in most columns.
+	@todo make snow 2x2, as 1x1 doesn't show up well in most columns.
 	"""
 	def render_snow(cols, flakes, flake_chance):
 		new_flakes = []
@@ -219,7 +219,7 @@ def snowflakes(steps=100):
 	flakes = []
 	for i in range(0, steps):
 		flakes = render_snow(COLS, flakes, 0.7)
-		yield
+		yield TIMEOUT
 
 def rainbow(steps=100):
 	"""Generate a rainbow pattern which rotates.
@@ -229,7 +229,7 @@ def rainbow(steps=100):
 			r,g,b = generate_colour(idx, len(COLS), i/steps)
 			for pixel in li:
 				pixel.set(r, g, b)
-		yield
+		yield TIMEOUT
 
 def larsen():
 	DIM_FACTOR = 0.9
@@ -251,7 +251,7 @@ def larsen():
 					pixel.set(0xff, 0, 0)
 				else:
 					pixel.dim(DIM_FACTOR)
-		yield
+		yield TIMEOUT
 
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -329,10 +329,10 @@ def main():
 
 	routine = rainbow
 	while True:
-		for _ in routine():
+		for timeout in routine():
 			bo.render(PIXELS)
 			try:
-				routine = MESSAGE_QUEUE.get(block=True, timeout=TIMEOUT)
+				routine = MESSAGE_QUEUE.get(block=True, timeout=timeout)
 				break
 			except queue.Empty:
 				pass
