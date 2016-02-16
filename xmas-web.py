@@ -23,7 +23,7 @@ import sys
 import threading
 import time
 
-TIMEOUT = 0.2
+TIMEOUT = 1
 
 class Pixel(object):
 	def __init__(self, chain_pos, x, y):
@@ -245,7 +245,7 @@ def larsen():
 					pixel.set(0xff, 0, 0)
 				else:
 					pixel.dim(DIM_FACTOR)
-		yield
+		yield TIMEOUT
 	for i in range(len(COLS)-1, -OVERSHOOT, -1):
 		for idx, li in enumerate(COLS):
 			for pixel in li:
