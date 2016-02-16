@@ -28,6 +28,9 @@
 
   <!-- Required Modernizr file -->
   <script src="deck.js-latest/modernizr.custom.js"></script>
+
+  <link rel="stylesheet" href="highlight/styles/monokai-sublime.css">
+  <script src="highlight/highlight.pack.js"></script>
 </head>
 <body>
   <div class="deck-container">
@@ -90,7 +93,7 @@
 
     <section class="slide">
       <h2>rpi_ws281x</h2>
-      <pre><code>
+      <pre><code class="c++">
 struct ws2811_device;
 
 typedef uint32_t ws2811_led_t;        //&lt; 0x00RRGGBB
@@ -130,7 +133,7 @@ int ws2811_wait(ws2811_t *ws2811);    //&lt; Wait for DMA completion
 
     <section class="slide">
       <h2>Doing two things at once</h2>
-      <pre><code>
+      <pre><code class="python">
 def main():
   print("{0} is running.".format(sys.argv[0]))
   bo = BitmapOut("test", single=True)
@@ -153,6 +156,56 @@ def main():
     </section>
 
     <section class="slide">
+      <h2>POST handler</h2>
+      <pre><code class="python">
+post_body = post_body.decode("utf-8")
+(key, value) = post_body.split("=")
+routine = {
+  "rainbow": rainbow,
+  "larsen": larsen,
+  "snowflakes": snowflakes
+}[value]
+MESSAGE_QUEUE.put(routine)
+self.send_response(200)
+self.send_header("Content-type", "application/json")
+self.end_headers()
+self.writeutf8('{ "status": "OK" }');
+      </code></pre>
+    </section>
+
+    <section class="slide">
+      <h2>Larsen scanner</h2>
+      <pre><code class="python">
+def larsen():
+  DIM_FACTOR = 0.9
+  OVERSHOOT = 10
+  for pixel in PIXELS:
+    pixel.set(0, 0, 0)
+  for i in range(0, len(COLS) + OVERSHOOT):
+    for idx, li in enumerate(COLS):
+      for pixel in li:
+        if idx == i:
+          pixel.set(0xff, 0, 0)
+        else:
+          pixel.dim(DIM_FACTOR)
+    yield TIMEOUT
+  for i in range(len(COLS)-1, -OVERSHOOT, -1):
+    for idx, li in enumerate(COLS):
+      for pixel in li:
+        if idx == i:
+          pixel.set(0xff, 0, 0)
+        else:
+          pixel.dim(DIM_FACTOR)
+    yield TIMEOUT
+      </code></pre>
+    </section>
+
+    <section class="slide">
+      <h2>Testing!</h2>
+      <img src="output.gif" width="80%">
+    </section>
+
+    <section class="slide">
       <h2>The BOM</h2>
       <ul>
         <li><h3>LEDs:</h3> <a href="https://www.coolcomponents.co.uk/digital-rgb-addressable-led-5mm-through-hole-10-pack.html">Cool Components 'addressable' 5mm</a> - &pound;4.00 for 10</li>
@@ -161,6 +214,20 @@ def main():
         <li><h3>Veroboard:</h3> Offcuts</li>
         <li><h3>Wire:</h3> Single core vs multi core</li>
       </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Manual labour...</h2>
+      <img src="letters.jpg" width="100%">
+    </section>
+
+    <section class="slide">
+      <h2>So much soldering!</h2>
+      <img src="soldering.jpg" width="100%">
+    </section>
+
+    <section class="slide">
+      <h1>Live Demo...</h1>
     </section>
 
     <section class="slide">
@@ -215,6 +282,7 @@ def main():
 <script>
   $(function() {
     $.deck('.slide');
+    hljs.initHighlightingOnLoad();
   });
 </script>
 </body>
