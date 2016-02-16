@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=1024, user-scalable=no">
+
+  <title>Xmas Web Ornament</title>
+
+  <!-- Required stylesheet -->
+  <link rel="stylesheet" media="screen" href="deck.js-latest/core/deck.core.css">
+
+  <!-- Extension CSS files go here. Remove or add as needed. -->
+  <link rel="stylesheet" media="screen" href="deck.js-latest/extensions/goto/deck.goto.css">
+  <link rel="stylesheet" media="screen" href="deck.js-latest/extensions/menu/deck.menu.css">
+  <link rel="stylesheet" media="screen" href="deck.js-latest/extensions/navigation/deck.navigation.css">
+  <link rel="stylesheet" media="screen" href="deck.js-latest/extensions/status/deck.status.css">
+  <link rel="stylesheet" media="screen" href="deck.js-latest/extensions/scale/deck.scale.css">
+
+  <!-- Style theme. More available in /themes/style/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="deck.js-latest/themes/style/neon.css">
+
+  <!-- Transition theme. More available in /themes/transition/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="deck.js-latest/themes/transition/horizontal-slide.css">
+
+  <!-- Basic black and white print styles -->
+  <link rel="stylesheet" media="print" href="deck.js-latest/core/print.css">
+
+  <!-- Required Modernizr file -->
+  <script src="deck.js-latest/modernizr.custom.js"></script>
+</head>
+<body>
+  <div class="deck-container">
+
+    <!-- Begin slides. Just make elements with a class of slide. -->
+
+    <section class="slide">
+      <h1>Xmas Web Ornament</h1>
+    </section>
+
+    <section class="slide">
+      <h1>What on Earth?</h1>
+    </section>
+
+    <section class="slide">
+      <h2>A visit to the garden centre</h2>
+      <ul>
+        <li class="slide"><h3>That looks nice</h3></li>
+        <li class="slide"><h3>It's a bit basic. I could make one much better than that.</h3></li>
+        <li class="slide"><h3>Ooh, that would be lovely!</h3></li>
+        <li class="slide"><h3>*mutter*</h3></li>
+    </section>
+
+    <section class="slide">
+      <h1>How hard can it be?</h1>
+    </section>
+
+    <section class="slide">
+      <h2>NeoPixels</h2>
+      <p>From the Summer 2013 Cambridge Jam</p>
+      <video src="neopixels.mp4" controls></video>
+    </section>
+
+    <section class="slide">
+      <h2>Pi Zero</h2>
+      <ul>
+        <li class="slide"><h3>It's smaller and cheaper than an Arduino!</h3></li>
+        <li class="slide"><h3>But can it do real-time?</h3></li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>How do NeoPixels work?</h2>
+      <img src="neopixel.jpg">
+    </section>
+
+    <section class="slide">
+      <h2>How do NeoPixels work?</h2>
+      <img src="timing.png" width="100%">
+    </section>
+
+    <section class="slide">
+      <h2>DMA to the rescue</h2>
+      <ul>
+        <li class="slide"><h3>Hard-real time</h3></li>
+        <li class="slide"><h3>Dedicated sillicon</h3> - runs alongside CPU</li>
+        <li class="slide"><h3>A well-solved problem!</h3> - rpi_ws281x</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>rpi_ws281x</h2>
+      <pre><code>
+struct ws2811_device;
+
+typedef uint32_t ws2811_led_t;        //&lt; 0x00RRGGBB
+typedef struct
+{
+    int gpionum;                      //&lt; GPIO Pin with PWM alternate function, 0 if unused
+    int invert;                       //&lt; Invert output signal
+    int count;                        //&lt; Number of LEDs, 0 if channel is unused
+    int brightness;                   //&lt; Brightness value between 0 and 255
+    ws2811_led_t *leds;               //&lt; LED buffers, allocated by driver based on count
+} ws2811_channel_t;
+
+typedef struct
+{
+    struct ws2811_device *device;     //&lt; Private data for driver use
+    uint32_t freq;                    //&lt; Required output frequency
+    int dmanum;                       //&lt; DMA number _not_ already in use
+    ws2811_channel_t channel[RPI_PWM_CHANNELS];
+} ws2811_t;
+
+
+int ws2811_init(ws2811_t *ws2811);    //&lt; Initialize buffers/hardware
+void ws2811_fini(ws2811_t *ws2811);   //&lt; Tear it all down
+int ws2811_render(ws2811_t *ws2811);  //&lt; Send LEDs off to hardware
+int ws2811_wait(ws2811_t *ws2811);    //&lt; Wait for DMA completion
+      </code></pre>
+    </section>
+
+    <section class="slide">
+      <h2><strike>The Internet of Tragically Over-Hyped Things</strike></h2>
+      <h2 class="slide">A Web Interface</h2>
+      <ul>
+        <li class="slide"><h3>Python</h3> - simple, and lots of HTTP support</li>
+        <li class="slide"><h3>C</h3> - needs to talk to ws2811 driver...</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>Doing two things at once</h2>
+      <pre><code>
+def main():
+  print("{0} is running.".format(sys.argv[0]))
+  bo = BitmapOut("test", single=True)
+
+  t = threading.Thread(target=web_server)
+  t.daemon = True
+  t.start()
+
+  routine = rainbow
+  while True:
+    for timeout in routine():
+      bo.render(PIXELS)
+      try:
+        routine = MESSAGE_QUEUE.get(block=True, timeout=timeout)
+        break
+      except queue.Empty:
+        pass
+  return 0
+      </code></pre>
+    </section>
+
+    <section class="slide">
+      <h2>The BOM</h2>
+      <ul>
+        <li><h3>LEDs:</h3> <a href="https://www.coolcomponents.co.uk/digital-rgb-addressable-led-5mm-through-hole-10-pack.html">Cool Components 'addressable' 5mm</a> - &pound;4.00 for 10</li>
+        <li><h3>Timber:</h3> MDF nightmare!</li>
+        <li><h3>Pi Zero:</h3> Lucky timing...</li>
+        <li><h3>Veroboard:</h3> Offcuts</li>
+        <li><h3>Wire:</h3> Single core vs multi core</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>The End</h2>
+      <ul>
+        <li><h3>e-mail</h3><p><a href="mailto:xmasweb@thejpster.org.uk">xmasweb@thejpster.org.uk</a></p></li>
+        <li><h3>github</h3><p><a href="https://github.com/thejpster">github.com/thejpster</a></p></li>
+        <li><h3>blog</h3><p><a href="https://railwayelectronics.blogspot.com">railwayelectronics.blogspot.com</a></p></li>
+      </ul>
+    </section>
+
+    <!-- End slides. -->
+
+    <!-- Begin extension snippets. Add or remove as needed. -->
+
+    <!-- deck.navigation snippet -->
+    <div aria-role="navigation">
+      <a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+      <a href="#" class="deck-next-link" title="Next">&#8594;</a>
+    </div>
+
+    <!-- deck.status snippet -->
+    <p class="deck-status" aria-role="status">
+      <span class="deck-status-current"></span>
+      /
+      <span class="deck-status-total"></span>
+    </p>
+
+    <!-- deck.goto snippet -->
+    <form action="." method="get" class="goto-form">
+      <label for="goto-slide">Go to slide:</label>
+      <input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+      <datalist id="goto-datalist"></datalist>
+      <input type="submit" value="Go">
+    </form>
+
+    <!-- End extension snippets. -->
+  </div>
+
+<!-- Required JS files. -->
+<script src="deck.js-latest/jquery.min.js"></script>
+<script src="deck.js-latest/core/deck.core.js"></script>
+
+<!-- Extension JS files. Add or remove as needed. -->
+<script src="deck.js-latest/extensions/menu/deck.menu.js"></script>
+<script src="deck.js-latest/extensions/goto/deck.goto.js"></script>
+<script src="deck.js-latest/extensions/status/deck.status.js"></script>
+<script src="deck.js-latest/extensions/navigation/deck.navigation.js"></script>
+<script src="deck.js-latest/extensions/scale/deck.scale.js"></script>
+
+<!-- Initialize the deck. You can put this in an external file if desired. -->
+<script>
+  $(function() {
+    $.deck('.slide');
+  });
+</script>
+</body>
+</html>
