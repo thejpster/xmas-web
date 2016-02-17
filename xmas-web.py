@@ -27,6 +27,11 @@ import sys
 import threading
 import time
 
+try:
+	import neopixel
+except ImportError:
+	neopixel = None
+
 TIMEOUT = 1
 
 class Pixel(object):
@@ -38,8 +43,11 @@ class Pixel(object):
 		self.g = 0
 		self.b = 0
 
-	def rgb(self):
+	def grb(self):
 		return ((self.g << 16) | (self.r << 8) | (self.b << 0))
+
+	def rgb(self):
+		return ((self.r << 16) | (self.g << 8) | (self.b << 0))
 
 	def triplet(self):
 		return (self.r, self.g, self.b)
@@ -152,12 +160,12 @@ class BitmapOut:
 		self.filename_root = filename_root
 		self.single = single
 
-	def render(self, pixels):
+	def render(self):
 		"""Given a collection of pixels, produces a bitmap.
 		"""
 		im = Image.new("RGB", (self.X_HEIGHT, self.Y_HEIGHT), "grey")
 		draw = ImageDraw.Draw(im)
-		for p in pixels:
+		for p in PIXELS:
 			x = (p.x + 1) * self.X_SPACE
 			y = (p.y + 1) * self.Y_SPACE
 			# print("Drawing {:06x} at ({},{})".format(p.rgb(), x, y))
@@ -173,12 +181,16 @@ class PixelsOut:
 	def __init__(self, gpio_pin):
 		print("Creating pixel output, GPIO={0}".format(gpio_pin))
 		self.gpio_pin = gpio_pin
+		self.neo = neopixel.Adafruit_NeoPixel(len(PIXELS), gpio_pin, invert=True)
+		self.neo.begin()
 
-	def render(self, pixels):
+	def render(self):
 		"""Gets the C library to bash the pixels
 		out over DMA/PWM.
 		"""
-		pass
+		for index, pixel in enumerate(PIXELS):
+			self.neo.setPixelColorRGB(index, *p.triplet())
+		self.show()
 
 def generate_colour(num, count, rotate):
 	"""Create an RGB colour value from an HSV colour wheel.
@@ -317,7 +329,6 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 			self.send_error(404, "File not found")
 		except Exception as e:
 			self.send_error(500, "Server Error: {!r}".format(e))
-	
 
 	def do_index(self, head):
 		"""Ideally, this would simply accept JSON commands, following a well-defined API.
@@ -361,7 +372,7 @@ def main():
 	routine = rainbow
 	while True:
 		for timeout in routine():
-			bo.render(PIXELS)
+			bo.render()
 			try:
 				routine = MESSAGE_QUEUE.get(block=True, timeout=timeout)
 				break
