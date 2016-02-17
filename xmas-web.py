@@ -6,9 +6,9 @@ Listens to commands via HTTP for controlling a simple Christmas ornament.
  0 0 0 0 0   0 00001 111 11  111122222  22 2 2 23
  0 1 2 3 4   5 67890 123 45  678901234  56 7 8 90
  | | | | |   | ||||| ||| ||  |||||||||  || | | ||
-04      05    13        21      30        42   43 - y=0
-  03  06    12 14     20 22    2931     41        - y=1
-	02      11  15   19  23   28  32        40    - y=2
+04      06    13        21      30        42   43 - y=0
+  03  05    12 14     20 22    2931     41        - y=1
+    02      11  15   19  23   28  32        40    - y=2
   01  07    10   16 18   24  27 33 34  36      39 - y=3
 00      08  09    17     25 26      35    37  38  - y=4
 """
@@ -91,8 +91,8 @@ PIXELS = [
 	(2,  2),
 	(1,  1),
 	(0,  0),
-	(4,  0),
 	(3,  1),
+	(4,  0),
 	(3,  3),
 	(4,  4),
 	# M
@@ -191,7 +191,7 @@ class PixelsOut:
 		out over DMA/PWM.
 		"""
 		for index, pixel in enumerate(PIXELS):
-			r, g, b = p.triplet()
+			r, g, b = pixel.triplet()
 			self.neo.setPixelColorRGB(index, g, r, b)
 		self.neo.show()
 
@@ -211,6 +211,15 @@ def generate_colour(num, count, rotate):
 	r, g, b = colorsys.hsv_to_rgb(h, s, v)
 	return (int(r * 255), int(g * 255), int(b * 255))
 
+def walk():
+	"""Illumatinate each LED in turn.
+	"""
+	for p in PIXELS:
+		for p2 in PIXELS:
+			p2.set(0, 0, 0)
+		p.set(0xff, 0, 0)
+		yield 0.5
+
 def snowflakes(steps=100):
 	"""All red, with falling white pixels representing snow.
 
@@ -218,20 +227,20 @@ def snowflakes(steps=100):
 	"""
 	def render_snow(cols, flakes, flake_chance):
 		new_flakes = []
+		# Move all existing flakes down, if they are not at the bottom
 		for (x,y) in flakes:
-			if y < 3:
-				print("flake at ({},{})->({},{})".format(x, y, x, y+1))
+			if (y+1) < len(cols):
 				new_flakes.append((x, y + 1))
 
+		# Make some new flakes
 		if random.random() < flake_chance:
 			col = random.randrange(0, len(cols))
-			print("New flake in col {}".format(col))
 			new_flakes.append((col, 0))
 
+		# Map flakes to pixels
 		for col in cols:
 			for pixel in col:
 				if (pixel.x, pixel.y) in new_flakes:
-					print("Found flake at {},{}".format(pixel.x, pixel.y))
 					pixel.set(0xff, 0xff, 0xff)
 				else:
 					pixel.set(0xff, 0, 0)
@@ -240,7 +249,7 @@ def snowflakes(steps=100):
 	flakes = []
 	for i in range(0, steps):
 		flakes = render_snow(COLS, flakes, 0.7)
-		yield TIMEOUT
+		yield 0.1
 
 def rainbow(steps=100):
 	"""Generate a rainbow pattern which rotates.
@@ -292,6 +301,7 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 			routine = {
 				"rainbow": rainbow,
 				"larsen": larsen,
+				"walk": walk,
 				"snowflakes": snowflakes
 			}[value]
 			MESSAGE_QUEUE.put(routine)
@@ -375,7 +385,7 @@ def main():
 	t.daemon = True
 	t.start()
 
-	routine = rainbow
+	routine = walk
 	while True:
 		for timeout in routine():
 			out.render()
