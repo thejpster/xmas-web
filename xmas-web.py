@@ -17,8 +17,12 @@ from PIL import Image, ImageDraw
 import colorsys
 import http.server
 import json
+import mimetypes
+import os
 import queue
 import random
+import shutil
+import socketserver
 import sys
 import threading
 import time
@@ -281,22 +285,39 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 			self.end_headers()
 			self.writeutf8('{ "status": "OK" }');
 		except Exception as e:
-			self.send_response(500)
-			self.send_header("Content-type", "text/plain")
-			self.end_headers()
-			self.writeutf8('Internal Server Error: {}'.format(e));
+			self.send_error(500, "Server Error: {!r}".format(e))
 
 	def do_REQ(self, head):
 		if self.path == "/":
 			self.do_index(head)
+		elif self.path.startswith("/slides") and (".." not in self.path):
+			self.do_slides(head)
 		else:
-			self.send_response(404)
-			self.send_header("Content-type", "text/plain")
-			self.end_headers()
-			self.writeutf8("Page not found!")
+			self.send_error(404, "Page not found")
 
 	def writeutf8(self, string):
 		self.wfile.write(string.encode("utf-8"))
+
+	def do_slides(self, head):
+		"""Serve up static files for the slide deck which describes this project.
+		Looks for files rooted in  ./slides.
+		"""
+		file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), self.path[1:]))
+		try:
+			with open(file_path, "rb") as f:
+				mime, encoding = mimetypes.guess_type(self.path)
+				self.send_response(200)
+				self.send_header("Content-type", mime)
+				self.end_headers()
+				if not head:
+					self.log_message("Sending file {file} as {mime}".format(file=file_path, mime=mime))
+					shutil.copyfileobj(f, self.wfile)
+					self.log_message("Sent file {file} as {mime}".format(file=file_path, mime=mime))
+		except IOError:
+			self.send_error(404, "File not found")
+		except Exception as e:
+			self.send_error(500, "Server Error: {!r}".format(e))
+	
 
 	def do_index(self, head):
 		"""Ideally, this would simply accept JSON commands, following a well-defined API.
@@ -310,7 +331,10 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 			if not head:
 				self.writeutf8(f.read())
 
-def web_server(server_class=http.server.HTTPServer, handler_class=MyRequestHandler):
+class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+	pass
+
+def web_server(server_class=ThreadingHTTPServer, handler_class=MyRequestHandler):
 	server_address = ('', 8000)
 	httpd = server_class(server_address, handler_class)
 	httpd.serve_forever()
