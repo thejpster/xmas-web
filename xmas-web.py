@@ -32,7 +32,8 @@ try:
 except ImportError:
 	neopixel = None
 
-TIMEOUT = 1
+TIMEOUT = 0.04
+GPIO_PIN = 18
 
 class Pixel(object):
 	def __init__(self, chain_pos, x, y):
@@ -183,14 +184,16 @@ class PixelsOut:
 		self.gpio_pin = gpio_pin
 		self.neo = neopixel.Adafruit_NeoPixel(len(PIXELS), gpio_pin, invert=True)
 		self.neo.begin()
+		self.neo.setBrightness(128)
 
 	def render(self):
 		"""Gets the C library to bash the pixels
 		out over DMA/PWM.
 		"""
 		for index, pixel in enumerate(PIXELS):
-			self.neo.setPixelColorRGB(index, *p.triplet())
-		self.show()
+			r, g, b = p.triplet()
+			self.neo.setPixelColorRGB(index, g, r, b)
+		self.neo.show()
 
 def generate_colour(num, count, rotate):
 	"""Create an RGB colour value from an HSV colour wheel.
@@ -363,7 +366,10 @@ def web_server(server_class=ThreadingHTTPServer, handler_class=MyRequestHandler)
 
 def main():
 	print("{0} is running.".format(sys.argv[0]))
-	bo = BitmapOut("test", single=True)
+	if neopixel:
+		out = PixelsOut(GPIO_PIN)
+	else:
+		out = BitmapOut("test", single=True)
 
 	t = threading.Thread(target=web_server)
 	t.daemon = True
@@ -372,7 +378,7 @@ def main():
 	routine = rainbow
 	while True:
 		for timeout in routine():
-			bo.render()
+			out.render()
 			try:
 				routine = MESSAGE_QUEUE.get(block=True, timeout=timeout)
 				break
