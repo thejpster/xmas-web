@@ -324,15 +324,19 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 		The index page and rich UI would be served by a separate nginx/gunicorn/Django/
 		jQuery/bootstrap server running on the same platform.
 		"""
-		with open("index.html", "r") as f:
-			self.send_response(200)
-			self.send_header("Content-type", "text/html")
-			self.end_headers()
-			if not head:
-				self.writeutf8(f.read())
+		file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "index.html"))
+		try:
+			with open(file_path, "r") as f:
+				self.send_response(200)
+				self.send_header("Content-type", "text/html")
+				self.end_headers()
+				if not head:
+					self.writeutf8(f.read())
+		except Exception as e:
+			self.send_error(500, "Server Error: {!r}".format(e))
 
 class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
-	pass
+	daemon_threads=True
 
 def web_server(server_class=ThreadingHTTPServer, handler_class=MyRequestHandler):
 	server_address = ('', 8000)

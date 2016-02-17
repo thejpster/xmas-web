@@ -1,0 +1,11 @@
+[Unit]
+Description=Xmas Web Server
+
+[Service]
+ExecStart=/home/pi/xmas-web/xmas-web.py
+WorkingDirectory=/home/pi/xmas-web
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target
+
