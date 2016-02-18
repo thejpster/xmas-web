@@ -395,7 +395,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 	daemon_threads=True
 
 def web_server(server_class=ThreadingHTTPServer, handler_class=MyRequestHandler):
-	server_address = ('', 8000)
+	server_address = ('', 80)
 	httpd = server_class(server_address, handler_class)
 	httpd.serve_forever()
 
