@@ -26,6 +26,7 @@ import socketserver
 import sys
 import threading
 import time
+import urllib.parse
 
 try:
 	import neopixel
@@ -34,6 +35,7 @@ except ImportError:
 
 TIMEOUT = 0.04
 GPIO_PIN = 18
+BRIGHTNESS = 64
 
 class Pixel(object):
 	def __init__(self, chain_pos, x, y):
@@ -178,13 +180,16 @@ class BitmapOut:
 		im.save(filename)
 		self.idx = self.idx + 1
 
+	def setBrightness(self, brightness):
+		pass
+
 class PixelsOut:
 	def __init__(self, gpio_pin):
 		print("Creating pixel output, GPIO={0}".format(gpio_pin))
 		self.gpio_pin = gpio_pin
 		self.neo = neopixel.Adafruit_NeoPixel(len(PIXELS), gpio_pin, invert=True)
 		self.neo.begin()
-		self.neo.setBrightness(128)
+		self.neo.setBrightness(BRIGHTNESS)
 
 	def render(self):
 		"""Gets the C library to bash the pixels
@@ -194,6 +199,9 @@ class PixelsOut:
 			r, g, b = pixel.triplet()
 			self.neo.setPixelColorRGB(index, g, r, b)
 		self.neo.show()
+
+	def setBrightness(self, brightness):
+		self.neo.setBrightness(min(brightness, 255))
 
 def generate_colour(num, count, rotate):
 	"""Create an RGB colour value from an HSV colour wheel.
@@ -210,6 +218,15 @@ def generate_colour(num, count, rotate):
 	v = 1
 	r, g, b = colorsys.hsv_to_rgb(h, s, v)
 	return (int(r * 255), int(g * 255), int(b * 255))
+
+def static():
+	"""The least interesting mode. All LEDs at the same colour and brightness.
+	"""
+	# @todo get colour from web UI
+	for p in PIXELS:
+		p.set(*static.colour)
+	yield 1
+static.colour = (0, 0xff, 0)
 
 def walk():
 	"""Illumatinate each LED in turn.
@@ -294,17 +311,32 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 	def do_POST(self):
 		content_len = int(self.headers.get('content-length', 0))
 		post_body = self.rfile.read(content_len)
+		post_data = urllib.parse.parse_qs(post_body)
 		print("Got body: {body!r}".format(body=post_body))
 		try:
-			post_body = post_body.decode("utf-8")
-			(key, value) = post_body.split("=")
-			routine = {
-				"rainbow": rainbow,
-				"larsen": larsen,
-				"walk": walk,
-				"snowflakes": snowflakes
-			}[value]
-			MESSAGE_QUEUE.put(routine)
+			for (key, value) in post_data.items():
+				print("Key {key!r} = {value!r}".format(key=key, value=value))
+				value = value[0].decode("ascii")
+				key = key.decode("ascii")
+				if key == "mode":
+					routine = {
+						"rainbow": rainbow,
+						"larsen": larsen,
+						"walk": walk,
+						"static": static,
+						"snowflakes": snowflakes
+					}[value]
+					MESSAGE_QUEUE.put(("routine", routine))
+				elif key == "brightness":
+					MESSAGE_QUEUE.put(("brightness", min(int(value), 255)))
+				elif key == "colour" and value[0].startswith("#"):
+					red = int(value[1:3], 16)
+					green = int(value[3:5], 16)
+					blue = int(value[5:7], 16)
+					triplet = (red, green, blue)
+					MESSAGE_QUEUE.put(("colour", triplet))
+				else:
+					raise ValueError("Didn't understand message")
 			self.send_response(200)
 			self.send_header("Content-type", "application/json")
 			self.end_headers()
@@ -390,8 +422,14 @@ def main():
 		for timeout in routine():
 			out.render()
 			try:
-				routine = MESSAGE_QUEUE.get(block=True, timeout=timeout)
-				break
+				(op, value) = MESSAGE_QUEUE.get(block=True, timeout=timeout)
+				if op == "routine":
+					routine = value
+					break
+				elif op == "brightness":
+					out.setBrightness(value)
+				elif op == "colour":
+					static.colour = value
 			except queue.Empty:
 				pass
 	return 0

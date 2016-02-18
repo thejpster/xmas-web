@@ -1,20 +1,81 @@
 <doctype html>
 <html>
-<head><title>Xmas Web</title></head>
+<head>
+<title>Xmas Web</title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+</head>
 <body>
+<div class="container-fluid">
+<div class="page-header">
 <h1>Xmas Web!</h1>
+</div>
 <p>This is the control interface for the Xmas display. Choose your mode:</p>
-<ul>
-<li><a href="#" onclick="select_mode('larsen')">Larsen Scanner</a></li>
-<li><a href="#" onclick="select_mode('rainbow')">Rainbow</a></li>
-<li><a href="#" onclick="select_mode('snowflakes')">Snow</a></li>
-</ul>
-<p id="pending">Please wait...</p>
-<p id="success">Mode set OK</p>
-<p id="failed"></p>
+<div class="btn-group btn-group-lg" role="group" >
+<a href="#" onclick="select_mode('larsen')"><button type="button" class="btn btn-default">Larsen Scanner</button></a>
+<a href="#" onclick="select_mode('rainbow')"><button type="button" class="btn btn-default">Rainbow</button></a>
+<a href="#" onclick="select_mode('snowflakes')"><button type="button" class="btn btn-default">Snow</button></a>
+<a href="#" onclick="select_mode('walk')"><button type="button" class="btn btn-default">Walk</button></a>
+<a href="#" onclick="select_mode('static')"><button type="button" class="btn btn-default">Static</button></a>
+</div>
+<hr>
+<div>
+<label for="brightness_fader">Brightness</label>
+<input class="form-control" type="range" id="brightness_fader" min="0" value="64" max="255" step="1">
+<output for="brightness_fader" id="brightness_val">64</output>
+</div>
+<hr>
+<div>
+<label for="colour_fader">Static Colour</label>
+<input class="form-control" type="color" id="colour_fader">
+</div>
+<hr>
+<div class="alert alert-info" id="pending">Please wait...</div>
+<div class="alert alert-success" id="success">Mode set OK</div>
+<div class="alert alert-warning" id="failed"></div>
+</div>
 </body>
-<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<!-- script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js" integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk" crossorigin="anonymous"></script -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script language="javascript">
+$('#brightness_fader').on("input", function() {
+	$('#brightness_val').html(this.value);
+});
+$('#brightness_fader').on("change", function() {
+	$('#success').hide();
+	$('#failed').hide();
+	$('#pending').show()
+	var value = this.value;
+	var data = { "brightness": value };
+	$.post("/brightness", data).done(function() {
+		$('#success').html("Brightness " + value + " set OK");
+		$('#success').show();
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+		$('#failed').html(errorThrown);
+		$('#failed').show();
+	}).always(function() {
+		$('#pending').hide()
+	});
+});
+$('#colour_fader').on("change", function() {
+	$('#success').hide();
+	$('#failed').hide();
+	$('#pending').show()
+	var value = this.value;
+	var data = { "colour": value };
+	$.post("/colour", data).done(function() {
+		$('#success').html("Colour " + value + " set OK");
+		$('#success').show();
+	}).fail(function(jqXHR, textStatus, errorThrown) {
+		$('#failed').html(errorThrown);
+		$('#failed').show();
+	}).always(function() {
+		$('#pending').hide()
+	});
+});
 function select_mode(mode)
 {
 	$('#success').hide();
