@@ -3,9 +3,11 @@
 <head>
 <title>Xmas Web</title>
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous"-->
+<link rel="stylesheet" href="bootstrap.min.css">
 <!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+<!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous"-->
+<link rel="stylesheet" href="bootstrap-theme.min.css">
 </head>
 <body>
 <div class="container-fluid">
@@ -15,7 +17,8 @@
 <p>This is the control interface for the Xmas display. Choose your mode:</p>
 <div class="btn-group btn-group-lg" role="group" >
 <a href="#" onclick="select_mode('larsen')"><button type="button" class="btn btn-default">Larsen Scanner</button></a>
-<a href="#" onclick="select_mode('rainbow')"><button type="button" class="btn btn-default">Rainbow</button></a>
+<a href="#" onclick="select_mode('rainbow_rows')"><button type="button" class="btn btn-default">Rainbow Cols</button></a>
+<a href="#" onclick="select_mode('rainbow_cols')"><button type="button" class="btn btn-default">Rainbow Rows</button></a>
 <a href="#" onclick="select_mode('snowflakes')"><button type="button" class="btn btn-default">Snow</button></a>
 <a href="#" onclick="select_mode('walk')"><button type="button" class="btn btn-default">Walk</button></a>
 <a href="#" onclick="select_mode('static')"><button type="button" class="btn btn-default">Static</button></a>
@@ -37,9 +40,10 @@
 <div class="alert alert-warning" id="failed"></div>
 </div>
 </body>
-<!-- script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js" integrity="sha384-K+ctZQ+LL8q6tP7I94W+qzQsfRV2a+AfHIi9k8z8l9ggpc8X+Ytst4yBo/hH+8Fk" crossorigin="anonymous"></script -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script-->
+<!--script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script-->
+<script src="jquery.min.js"></script>
+<script src="bootstrap.min.js"></script>
 <script language="javascript">
 $('#brightness_fader').on("input", function() {
 	$('#brightness_val').html(this.value);
