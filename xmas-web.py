@@ -187,7 +187,7 @@ class PixelsOut:
 	def __init__(self, gpio_pin):
 		print("Creating pixel output, GPIO={0}".format(gpio_pin))
 		self.gpio_pin = gpio_pin
-		self.neo = neopixel.Adafruit_NeoPixel(len(PIXELS), gpio_pin, invert=True)
+		self.neo = neopixel.Adafruit_NeoPixel(len(PIXELS), gpio_pin, freq_hz=400000, invert=False)
 		self.neo.begin()
 		self.neo.setBrightness(BRIGHTNESS)
 
@@ -417,7 +417,7 @@ def main():
 	t.daemon = True
 	t.start()
 
-	routine = walk
+	routine = rainbow
 	while True:
 		for timeout in routine():
 			out.render()
