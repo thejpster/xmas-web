@@ -268,12 +268,22 @@ def snowflakes(steps=100):
 		flakes = render_snow(COLS, flakes, 0.7)
 		yield 0.1
 
-def rainbow(steps=100):
+def rainbow_cols(steps=100):
 	"""Generate a rainbow pattern which rotates.
 	"""
 	for i in range(0, steps):
 		for (idx, li) in enumerate(COLS):
 			r,g,b = generate_colour(idx, len(COLS), 1-i/steps)
+			for pixel in li:
+				pixel.set(r, g, b)
+		yield TIMEOUT
+
+def rainbow_rows(steps=100):
+	"""Generate a rainbow pattern which rotates.
+	"""
+	for i in range(0, steps):
+		for (idx, li) in enumerate(ROWS):
+			r,g,b = generate_colour(idx, len(ROWS), 1-i/steps)
 			for pixel in li:
 				pixel.set(r, g, b)
 		yield TIMEOUT
@@ -320,7 +330,8 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 				key = key.decode("ascii")
 				if key == "mode":
 					routine = {
-						"rainbow": rainbow,
+						"rainbow_rows": rainbow_rows,
+						"rainbow_cols": rainbow_cols,
 						"larsen": larsen,
 						"walk": walk,
 						"static": static,
@@ -417,7 +428,7 @@ def main():
 	t.daemon = True
 	t.start()
 
-	routine = rainbow
+	routine = rainbow_cols
 	while True:
 		for timeout in routine():
 			out.render()
