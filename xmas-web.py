@@ -283,7 +283,7 @@ def rainbow_rows(steps=100):
 	"""
 	for i in range(0, steps):
 		for (idx, li) in enumerate(ROWS):
-			r,g,b = generate_colour(idx, len(ROWS), 1-i/steps)
+			r,g,b = generate_colour(i + (idx*10), steps, 0)
 			for pixel in li:
 				pixel.set(r, g, b)
 		yield TIMEOUT
@@ -358,19 +358,22 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 	def do_REQ(self, head):
 		if self.path == "/":
 			self.do_index(head)
-		elif self.path.startswith("/slides") and (".." not in self.path):
-			self.do_slides(head)
+		elif self.path.startswith("/static/") and (".." not in self.path):
+			self.do_static(head)
 		else:
 			self.send_error(404, "Page not found")
 
 	def writeutf8(self, string):
 		self.wfile.write(string.encode("utf-8"))
 
-	def do_slides(self, head):
+	def do_static(self, head):
 		"""Serve up static files for the slide deck which describes this project.
-		Looks for files rooted in  ./slides.
+		Looks for files rooted in  ./static.
 		"""
-		file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), self.path[1:]))
+		file_name = self.path[1:]
+		print("Looking for {!r}".format(file_name))
+		file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), file_name))
+		print("Looking in {!r}".format(file_path))
 		try:
 			with open(file_path, "rb") as f:
 				mime, encoding = mimetypes.guess_type(self.path)
