@@ -19,6 +19,7 @@ import http.server
 import json
 import mimetypes
 import os
+import math
 import queue
 import random
 import shutil
@@ -33,6 +34,7 @@ try:
 except ImportError:
 	neopixel = None
 
+GAMMA = 2.8
 TIMEOUT = 0.04
 GPIO_PIN = 18
 BRIGHTNESS = 64
@@ -191,13 +193,17 @@ class PixelsOut:
 		self.neo.begin()
 		self.neo.setBrightness(BRIGHTNESS)
 
+	def gamma(self, value):
+		value_gamma = math.pow(value / 255, GAMMA)
+		return int((value_gamma * 255) + 0.5)
+
 	def render(self):
 		"""Gets the C library to bash the pixels
 		out over DMA/PWM.
 		"""
 		for index, pixel in enumerate(PIXELS):
 			r, g, b = pixel.triplet()
-			self.neo.setPixelColorRGB(index, g, r, b)
+			self.neo.setPixelColorRGB(index, self.gamma(g), self.gamma(r), self.gamma(b))
 		self.neo.show()
 
 	def setBrightness(self, brightness):
