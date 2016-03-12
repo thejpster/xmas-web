@@ -294,7 +294,7 @@ def rainbow_rows(steps=100):
 				pixel.set(r, g, b)
 		yield TIMEOUT
 
-def larsen():
+def larson():
 	DIM_FACTOR = 0.9
 	OVERSHOOT = 10
 	for pixel in PIXELS:
@@ -338,7 +338,7 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
 					routine = {
 						"rainbow_rows": rainbow_rows,
 						"rainbow_cols": rainbow_cols,
-						"larsen": larsen,
+						"larson": larson,
 						"walk": walk,
 						"static": static,
 						"snowflakes": snowflakes
@@ -419,7 +419,7 @@ def web_server(server_class=ThreadingHTTPServer, handler_class=MyRequestHandler)
 	httpd = server_class(server_address, handler_class)
 	httpd.serve_forever()
 
-# Rainbow larsen?
+# Rainbow larson?
 # Pixel chasing - one pixel per three or four which chases around the sequence
 # Throb - fading in and out
 # Twinkle - pixels brighten and fade randomly
